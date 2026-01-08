@@ -1,0 +1,8 @@
+{
+  "name": "HBS Stay Concierge",
+  "description": "A premium hotel concierge platform featuring a mobile-first guest application and a comprehensive admin management system with multi-language support (English & Khmer).",
+  "requestFramePermissions": [
+    "camera",
+    "geolocation"
+  ]
+}
