@@ -8,9 +8,11 @@ import Icons, { IconName } from '../../components/Icons';
 const AdminDashboard: React.FC = () => {
   const { requests, feedbacks, hotelSettings } = useApp();
 
+  const activeStatuses = ['pending', 'confirmed', 'follow_up'];
+
   const stats = [
     { label: 'Total Requests', value: requests.length, icon: 'stats' as IconName, color: 'bg-blue-50 text-blue-600' },
-    { label: 'Active Orders', value: requests.filter(r => r.status === 'pending').length, icon: 'active' as IconName, color: 'bg-amber-50 text-amber-600' },
+    { label: 'Active Orders', value: requests.filter(r => activeStatuses.includes(r.status)).length, icon: 'active' as IconName, color: 'bg-amber-50 text-amber-600' },
     { label: 'Completed', value: requests.filter(r => r.status === 'completed').length, icon: 'completed' as IconName, color: 'bg-green-50 text-green-600' },
     { label: 'Avg Rating', value: feedbacks.length ? (feedbacks.reduce((a, b) => a + b.rating, 0) / feedbacks.length).toFixed(1) : 'N/A', icon: 'rating' as IconName, color: 'bg-purple-50 text-purple-600' },
   ];

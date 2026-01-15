@@ -31,7 +31,6 @@ export const useApp = () => {
   return context;
 };
 
-// --- Sub-components ---
 import GuestHome from './pages/guest/GuestHome';
 import MenuCategory from './pages/guest/MenuCategory';
 import CheckoutRequest from './pages/guest/CheckoutRequest';
@@ -73,14 +72,7 @@ const App: React.FC = () => {
   });
   const [hotelSettings, setHotelSettings] = useState<HotelSettings>(() => {
     const saved = localStorage.getItem('luxestay_settings');
-    const settings = saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-    if (settings.logo === undefined) settings.logo = '';
-    if (settings.iconSize === undefined) settings.iconSize = 32;
-    if (settings.homeView === undefined) settings.homeView = 'grid';
-    if (settings.categoryView === undefined) settings.categoryView = 'list';
-    if (settings.whatsappNumber === undefined) settings.whatsappNumber = '1234567890';
-    if (settings.telegramUsername === undefined) settings.telegramUsername = 'LuxeStayConcierge';
-    return settings;
+    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
   });
   const [isAdmin, setIsAdmin] = useState(false);
   const [roomNumber, setRoomNumberState] = useState(() => {
@@ -92,6 +84,7 @@ const App: React.FC = () => {
     localStorage.setItem('luxestay_room_number', room);
   };
 
+  // Sync state with LocalStorage and handle multi-tab synchronization
   useEffect(() => {
     localStorage.setItem('luxestay_menu', JSON.stringify(menuItems));
   }, [menuItems]);
@@ -107,15 +100,24 @@ const App: React.FC = () => {
   useEffect(() => {
     localStorage.setItem('luxestay_settings', JSON.stringify(hotelSettings));
     
-    // Sync browser tab title with Site Title
-    document.title = hotelSettings.name || 'GreenAmazonResidence Concierge';
-    
+    document.title = hotelSettings.name;
     document.documentElement.style.setProperty('--primary-color', hotelSettings.primaryColor);
     document.documentElement.style.setProperty('--primary-color-dark', hotelSettings.primaryColor + 'ee');
     document.documentElement.style.setProperty('--button-color', hotelSettings.buttonColor);
     document.documentElement.style.setProperty('--button-color-dark', hotelSettings.buttonColor + 'dd');
     document.documentElement.style.setProperty('--icon-size', `${hotelSettings.iconSize}px`);
   }, [hotelSettings]);
+
+  // Listen for storage changes from other tabs (e.g. Admin updates)
+  useEffect(() => {
+    const handleStorage = (e: StorageEvent) => {
+      if (e.key === 'luxestay_settings' && e.newValue) setHotelSettings(JSON.parse(e.newValue));
+      if (e.key === 'luxestay_menu' && e.newValue) setMenuItems(JSON.parse(e.newValue));
+      if (e.key === 'luxestay_requests' && e.newValue) setRequests(JSON.parse(e.newValue));
+    };
+    window.addEventListener('storage', handleStorage);
+    return () => window.removeEventListener('storage', handleStorage);
+  }, []);
 
   const addRequest = (r: Omit<RequestItem, 'id' | 'timestamp' | 'status'>) => {
     const newRequest: RequestItem = {

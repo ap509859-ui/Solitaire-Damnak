@@ -39,21 +39,21 @@ const AdminRequests: React.FC = () => {
         ) : (
           requests.map(request => (
             <div key={request.id} className="bg-white p-6 rounded-2xl border border-stone-200 shadow-sm flex flex-col md:flex-row md:items-center justify-between gap-6">
-              <div className="flex items-start gap-4">
+              <div className="flex items-start gap-4 text-left">
                 <div className="w-12 h-12 bg-stone-50 text-stone-400 rounded-xl flex items-center justify-center shrink-0">
                   <Icons name={getRequestIcon(request.type)} className="w-6 h-6" />
                 </div>
-                <div>
-                  <div className="flex items-center gap-3 mb-1">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-3 mb-1 flex-wrap">
                     <span className="font-bold text-stone-800 text-lg">Room {request.roomNumber}</span>
-                    <span className={`px-3 py-0.5 rounded-full text-xs font-bold uppercase tracking-wider ${getStatusColor(request.status)}`}>
+                    <span className={`px-3 py-0.5 rounded-full text-[10px] font-bold uppercase tracking-wider ${getStatusColor(request.status)}`}>
                       {request.status.replace('_', ' ')}
                     </span>
                   </div>
-                  <p className="text-stone-500 text-sm mb-2">
+                  <p className="text-stone-500 text-sm mb-2 font-medium">
                     {request.items?.map(i => `${i.quantity}x ${i.name}`).join(', ') || request.type.toUpperCase()}
                   </p>
-                  <p className="text-stone-400 text-xs italic">
+                  <p className="text-stone-400 text-xs italic line-clamp-2">
                     {request.details}
                   </p>
                   <p className="text-[10px] text-stone-300 mt-2 font-mono">
@@ -62,35 +62,38 @@ const AdminRequests: React.FC = () => {
                 </div>
               </div>
 
-              <div className="flex gap-2">
+              <div className="flex flex-wrap gap-2 justify-end shrink-0">
                 {request.status === 'pending' && (
                   <button 
                     onClick={() => updateRequestStatus(request.id, 'confirmed')}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-blue-600 transition-colors"
+                    className="bg-blue-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-blue-700 transition-all shadow-sm active:scale-95"
                   >
                     Confirm
                   </button>
                 )}
+                
                 {(request.status === 'pending' || request.status === 'confirmed') && (
                   <button 
                     onClick={() => updateRequestStatus(request.id, 'follow_up')}
-                    className="bg-purple-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-purple-600 transition-colors"
+                    className="bg-purple-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-purple-700 transition-all shadow-sm active:scale-95"
                   >
                     Follow Up
                   </button>
                 )}
+
                 {(request.status === 'confirmed' || request.status === 'pending' || request.status === 'follow_up') && (
                   <button 
                     onClick={() => updateRequestStatus(request.id, 'completed')}
-                    className="bg-green-500 text-white px-4 py-2 rounded-lg text-sm font-bold hover:bg-green-600 transition-colors"
+                    className="bg-green-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-green-700 transition-all shadow-sm active:scale-95"
                   >
                     Mark Done
                   </button>
                 )}
+
                 {request.status !== 'completed' && request.status !== 'cancelled' && (
                   <button 
                     onClick={() => updateRequestStatus(request.id, 'cancelled')}
-                    className="bg-stone-100 text-stone-500 px-4 py-2 rounded-lg text-sm font-bold hover:bg-stone-200 transition-colors"
+                    className="bg-stone-50 text-stone-500 border border-stone-200 px-5 py-2.5 rounded-xl text-sm font-bold hover:bg-stone-100 transition-all active:scale-95"
                   >
                     Cancel
                   </button>
