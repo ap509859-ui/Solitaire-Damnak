@@ -3,20 +3,21 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>LuxeStay Concierge</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>Green Amazon Residence - Digital Concierge</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@400;700&family=Inter:wght@300;400;500;600&family=Kantumruy+Pro:wght@300;400;700&display=swap" rel="stylesheet">
     <style>
         :root {
-            --primary-color: #C5A059;
-            --primary-color-dark: #A68445;
+            --primary-color: #2D5A27;
+            --primary-color-dark: #1E3F1A;
             --button-color: #1C1C1C;
             --button-color-dark: #000000;
             --icon-size: 32px;
         }
         body {
             font-family: 'Inter', 'Kantumruy Pro', sans-serif;
+            -webkit-tap-highlight-color: transparent;
         }
         .font-serif {
             font-family: 'Playfair Display', serif;
@@ -25,7 +26,6 @@
             font-family: 'Kantumruy Pro', sans-serif;
         }
 
-        /* Custom utility classes using the dynamic colors */
         .bg-primary { background-color: var(--primary-color); }
         .bg-primary-dark { background-color: var(--primary-color-dark); }
         .text-primary { color: var(--primary-color); }
@@ -38,6 +38,14 @@
         .border-button { border-color: var(--button-color); }
 
         .shadow-primary { --tw-shadow-color: var(--primary-color); }
+
+        .page-transition {
+            animation: fadeIn 0.4s ease-out;
+        }
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
     </style>
 <script type="importmap">
 {
@@ -52,7 +60,8 @@
 }
 </script>
 </head>
-<body class="bg-stone-50 text-stone-900">
+<body class="bg-stone-50 text-stone-900 overflow-x-hidden">
     <div id="root"></div>
+    <script type="module" src="index.tsx"></script>
 </body>
 </html>
