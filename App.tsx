@@ -1,8 +1,9 @@
 
 import React, { useState, useEffect, createContext, useContext } from 'react';
-import { HashRouter, Routes, Route, useNavigate, Link } from 'react-router-dom';
+import { HashRouter, Routes, Route } from 'react-router-dom';
 import { Language, MenuItem, RequestItem, Category, Feedback, HotelSettings } from './types';
 import { INITIAL_MENU_ITEMS } from './constants.tsx';
+import { supabase } from './services/supabase';
 
 // --- Context & State Management ---
 interface AppContextType {
@@ -44,103 +45,118 @@ import AdminLogin from './pages/admin/AdminLogin';
 import AdminSettings from './pages/admin/AdminSettings';
 
 const DEFAULT_SETTINGS: HotelSettings = {
-  name: 'LUXESTAY',
+  name: 'Green Amazon Residence',
   logo: '',
   banner: 'https://images.unsplash.com/photo-1542314831-068cd1dbfeeb?auto=format&fit=crop&w=800&q=80',
-  primaryColor: '#C5A059',
+  primaryColor: '#2D5A27', // Updated to match Green Amazon vibe
   buttonColor: '#1C1C1C',
   iconSize: 32,
   homeView: 'grid',
   categoryView: 'list',
   whatsappNumber: '1234567890',
-  telegramUsername: 'LuxeStayConcierge'
+  telegramUsername: 'GreenAmazonConcierge'
 };
 
 const App: React.FC = () => {
   const [lang, setLang] = useState<Language>(Language.EN);
-  const [menuItems, setMenuItems] = useState<MenuItem[]>(() => {
-    const saved = localStorage.getItem('luxestay_menu');
-    return saved ? JSON.parse(saved) : INITIAL_MENU_ITEMS;
-  });
-  const [requests, setRequests] = useState<RequestItem[]>(() => {
-    const saved = localStorage.getItem('luxestay_requests');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [feedbacks, setFeedbacks] = useState<Feedback[]>(() => {
-    const saved = localStorage.getItem('luxestay_feedbacks');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [hotelSettings, setHotelSettings] = useState<HotelSettings>(() => {
-    const saved = localStorage.getItem('luxestay_settings');
-    return saved ? JSON.parse(saved) : DEFAULT_SETTINGS;
-  });
+  const [menuItems, setMenuItems] = useState<MenuItem[]>([]);
+  const [requests, setRequests] = useState<RequestItem[]>([]);
+  const [feedbacks, setFeedbacks] = useState<Feedback[]>([]);
+  const [hotelSettings, setHotelSettingsState] = useState<HotelSettings>(DEFAULT_SETTINGS);
   const [isAdmin, setIsAdmin] = useState(false);
-  const [roomNumber, setRoomNumberState] = useState(() => {
-    return localStorage.getItem('luxestay_room_number') || '';
-  });
+  const [roomNumber, setRoomNumberState] = useState(() => localStorage.getItem('luxestay_room_number') || '');
+
+  // Initialization: Fetch all data from Supabase
+  useEffect(() => {
+    const fetchData = async () => {
+      // Settings
+      const { data: settingsData } = await supabase.from('settings').select('*').single();
+      if (settingsData) setHotelSettingsState(settingsData.config);
+
+      // Menu Items
+      const { data: menuData } = await supabase.from('menu_items').select('*');
+      if (menuData && menuData.length > 0) {
+        setMenuItems(menuData.map(m => m.data));
+      } else {
+        // Fallback for first-time setup
+        setMenuItems(INITIAL_MENU_ITEMS);
+      }
+
+      // Requests
+      const { data: requestData } = await supabase.from('requests').select('*').order('timestamp', { ascending: false });
+      if (requestData) setRequests(requestData);
+
+      // Feedbacks
+      const { data: feedbackData } = await supabase.from('feedbacks').select('*').order('timestamp', { ascending: false });
+      if (feedbackData) setFeedbacks(feedbackData);
+    };
+
+    fetchData();
+
+    // Subscribe to Realtime changes
+    const settingsSub = supabase.channel('settings_changes').on('postgres_changes', { event: '*', table: 'settings' }, (payload) => {
+      if (payload.new) setHotelSettingsState((payload.new as any).config);
+    }).subscribe();
+
+    const menuSub = supabase.channel('menu_changes').on('postgres_changes', { event: '*', table: 'menu_items' }, async () => {
+      const { data } = await supabase.from('menu_items').select('*');
+      if (data) setMenuItems(data.map(m => m.data));
+    }).subscribe();
+
+    const requestSub = supabase.channel('request_changes').on('postgres_changes', { event: '*', table: 'requests' }, async () => {
+      const { data } = await supabase.from('requests').select('*').order('timestamp', { ascending: false });
+      if (data) setRequests(data);
+    }).subscribe();
+
+    return () => {
+      settingsSub.unsubscribe();
+      menuSub.unsubscribe();
+      requestSub.unsubscribe();
+    };
+  }, []);
+
+  const setHotelSettings = async (settings: HotelSettings) => {
+    setHotelSettingsState(settings);
+    await supabase.from('settings').upsert({ id: 1, config: settings });
+  };
 
   const setRoomNumber = (room: string) => {
     setRoomNumberState(room);
     localStorage.setItem('luxestay_room_number', room);
   };
 
-  // Sync state with LocalStorage and handle multi-tab synchronization
-  useEffect(() => {
-    localStorage.setItem('luxestay_menu', JSON.stringify(menuItems));
-  }, [menuItems]);
-
-  useEffect(() => {
-    localStorage.setItem('luxestay_requests', JSON.stringify(requests));
-  }, [requests]);
-
-  useEffect(() => {
-    localStorage.setItem('luxestay_feedbacks', JSON.stringify(feedbacks));
-  }, [feedbacks]);
-
-  useEffect(() => {
-    localStorage.setItem('luxestay_settings', JSON.stringify(hotelSettings));
-    
-    document.title = hotelSettings.name;
-    document.documentElement.style.setProperty('--primary-color', hotelSettings.primaryColor);
-    document.documentElement.style.setProperty('--primary-color-dark', hotelSettings.primaryColor + 'ee');
-    document.documentElement.style.setProperty('--button-color', hotelSettings.buttonColor);
-    document.documentElement.style.setProperty('--button-color-dark', hotelSettings.buttonColor + 'dd');
-    document.documentElement.style.setProperty('--icon-size', `${hotelSettings.iconSize}px`);
-  }, [hotelSettings]);
-
-  // Listen for storage changes from other tabs (e.g. Admin updates)
-  useEffect(() => {
-    const handleStorage = (e: StorageEvent) => {
-      if (e.key === 'luxestay_settings' && e.newValue) setHotelSettings(JSON.parse(e.newValue));
-      if (e.key === 'luxestay_menu' && e.newValue) setMenuItems(JSON.parse(e.newValue));
-      if (e.key === 'luxestay_requests' && e.newValue) setRequests(JSON.parse(e.newValue));
-    };
-    window.addEventListener('storage', handleStorage);
-    return () => window.removeEventListener('storage', handleStorage);
-  }, []);
-
-  const addRequest = (r: Omit<RequestItem, 'id' | 'timestamp' | 'status'>) => {
-    const newRequest: RequestItem = {
+  const addRequest = async (r: Omit<RequestItem, 'id' | 'timestamp' | 'status'>) => {
+    const newRequest = {
       ...r,
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now(),
-      status: 'pending'
+      status: 'pending' as const
     };
-    setRequests(prev => [newRequest, ...prev]);
+    await supabase.from('requests').insert([newRequest]);
   };
 
-  const updateRequestStatus = (id: string, status: RequestItem['status']) => {
-    setRequests(prev => prev.map(r => r.id === id ? { ...r, status } : r));
+  const updateRequestStatus = async (id: string, status: RequestItem['status']) => {
+    await supabase.from('requests').update({ status }).eq('id', id);
   };
 
-  const addFeedback = (f: Omit<Feedback, 'id' | 'timestamp'>) => {
-    const newFeedback: Feedback = {
+  const addFeedback = async (f: Omit<Feedback, 'id' | 'timestamp'>) => {
+    const newFeedback = {
       ...f,
       id: Math.random().toString(36).substr(2, 9),
       timestamp: Date.now()
     };
-    setFeedbacks(prev => [newFeedback, ...prev]);
+    await supabase.from('feedbacks').insert([newFeedback]);
   };
+
+  // Sync Global CSS Variables
+  useEffect(() => {
+    document.title = hotelSettings.name;
+    const root = document.documentElement;
+    root.style.setProperty('--primary-color', hotelSettings.primaryColor);
+    root.style.setProperty('--primary-color-dark', hotelSettings.primaryColor + 'dd');
+    root.style.setProperty('--button-color', hotelSettings.buttonColor);
+    root.style.setProperty('--icon-size', `${hotelSettings.iconSize}px`);
+  }, [hotelSettings]);
 
   return (
     <AppContext.Provider value={{
