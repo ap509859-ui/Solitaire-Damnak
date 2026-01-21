@@ -11,25 +11,20 @@ const MenuCategory: React.FC = () => {
   const navigate = useNavigate();
   const fileInputRef = useRef<HTMLInputElement>(null);
   
-  // Shared state
   const [localRoomNumber, setLocalRoomNumber] = useState(roomNumber);
   const [notes, setNotes] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [success, setSuccess] = useState(false);
 
-  // Housekeeping & Laundry shared state
   const [selectedTime, setSelectedTime] = useState<'now' | 'later'>('now');
   const [anotherTime, setAnotherTime] = useState('');
 
-  // Maintenance specific state
   const [maintenanceDesc, setMaintenanceDesc] = useState('');
   const [maintenanceImage, setMaintenanceImage] = useState<string | null>(null);
 
-  // Laundry specific state
   const [laundryServiceLevel, setLaundryServiceLevel] = useState<'standard' | 'express'>('standard');
   const [laundryItems, setLaundryItems] = useState('');
 
-  // Generic state
   const [showOrderModal, setShowOrderModal] = useState<string | null>(null);
 
   const isHousekeeping = category === Category.HOUSEKEEPING;
@@ -39,7 +34,6 @@ const MenuCategory: React.FC = () => {
   
   const filteredItems = menuItems.filter(item => item.category === category && item.available);
 
-  // Grouping for Local Attractions
   const groupedItems = React.useMemo(() => {
     if (!isAttractions) return { "General": filteredItems };
     
@@ -167,7 +161,6 @@ const MenuCategory: React.FC = () => {
     );
   }
 
-  // Specialized Laundry UI
   if (isLaundry) {
     return (
       <GuestLayout>
@@ -286,7 +279,6 @@ const MenuCategory: React.FC = () => {
     );
   }
 
-  // Specialized Maintenance UI
   if (isMaintenance) {
     return (
       <GuestLayout>
@@ -337,7 +329,9 @@ const MenuCategory: React.FC = () => {
                   {lang === Language.EN ? 'Description' : 'ការរៀបរាប់'}
                 </label>
                 <div className="absolute left-4 top-10 text-stone-400">
-                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                  <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                    <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                  </svg>
                 </div>
                 <textarea
                   value={maintenanceDesc}
@@ -356,7 +350,9 @@ const MenuCategory: React.FC = () => {
                   className="w-full flex items-center bg-stone-50 border border-stone-200 rounded-2xl p-4 pt-10 h-24 text-left group-hover:bg-white transition-all active:scale-[0.98] outline-none focus:ring-2 focus:ring-indigo-100"
                 >
                   <div className="flex items-center gap-4 text-stone-400">
-                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+                    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/>
+                    </svg>
                     <span className="font-semibold text-stone-400">
                       {maintenanceImage ? (lang === Language.EN ? 'Change Photo' : 'ប្តូររូបភាព') : (lang === Language.EN ? 'Image Upload' : 'បញ្ជូនរូបភាព')}
                     </span>
@@ -404,7 +400,6 @@ const MenuCategory: React.FC = () => {
     );
   }
 
-  // Specialized Housekeeping UI
   if (isHousekeeping) {
     return (
       <GuestLayout>
@@ -477,7 +472,9 @@ const MenuCategory: React.FC = () => {
               {selectedTime === 'later' && (
                 <div className="relative animate-in slide-in-from-top-2 duration-300">
                    <div className="absolute left-4 top-4 text-stone-400">
-                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/></svg>
+                    <svg className="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2" d="M15.232 5.232l3.536 3.536m-2.036-5.036a2.5 2.5 0 113.536 3.536L6.5 21.036H3v-3.572L16.732 3.732z"/>
+                    </svg>
                   </div>
                   <textarea
                     value={anotherTime}
@@ -512,7 +509,6 @@ const MenuCategory: React.FC = () => {
     );
   }
 
-  // Generic Menu UI for other categories
   return (
     <GuestLayout title={category}>
       <div className="space-y-10">
@@ -558,7 +554,9 @@ const MenuCategory: React.FC = () => {
                     >
                       <span>{lang === Language.EN ? (isAttractions ? 'Details' : 'Book Now') : (isAttractions ? 'ព័ត៌មានលម្អិត' : 'កក់ឥឡូវនេះ')}</span>
                       {item.externalUrl && (
-                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/></svg>
+                        <svg className="w-3 h-3" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth="2.5" d="M10 6H6a2 2 0 00-2 2v10a2 2 0 002 2h10a2 2 0 002-2v-4M14 4h6m0 0v6m0-6L10 14"/>
+                        </svg>
                       )}
                     </button>
                   </div>

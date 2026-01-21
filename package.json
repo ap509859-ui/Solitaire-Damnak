@@ -5,7 +5,7 @@
   "description": "Digital Concierge for Green Amazon Residence",
   "scripts": {
     "start": "serve .",
-    "build": "echo 'No build step required for ESM-native app'"
+    "build": "echo 'No build step required'"
   },
   "keywords": [],
   "author": "",
